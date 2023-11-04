@@ -1,0 +1,23 @@
+{
+  "name": "miniproject",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx nodemon app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body": "^5.1.0",
+    "cors": "^2.8.5",
+    "expless": "^0.1.91",
+    "express": "^4.18.2",
+    "mysql": "^2.18.1"
+  },
+  "description": "",
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
