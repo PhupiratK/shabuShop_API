@@ -8,7 +8,7 @@ const connection = mysql.createConnection({
   user: "root",
   password: "root",
   database: "shabushop",
-  port: "8889",
+  port: "3306",
 });
 
 app.use(cors());
@@ -16,7 +16,7 @@ app.use(express.json());
 const port = 3001;
 
 //-----get----
-app.get("/api/food", function (req, res) {
+app.get("/food", function (req, res) {
   const sql = "SELECT * FROM FOOD";
   connection.query(sql, (err, data) => {
     if (err) {
@@ -27,7 +27,7 @@ app.get("/api/food", function (req, res) {
   });
 });
 
-app.get("/api/drink", function (req, res) {
+app.get("/drink", function (req, res) {
   const sql = "SELECT * FROM drink";
   connection.query(sql, (err, data) => {
     if (err) {
@@ -38,7 +38,18 @@ app.get("/api/drink", function (req, res) {
   });
 });
 
-app.get("/api/order", function (req, res) {
+app.get("/dessert", function (req, res) {
+  const sql = "SELECT * FROM `dessert`";
+  connection.query(sql, (err, data) => {
+    if (err) {
+      console.error("Error executing the SQL query:", err);
+      return res.status(500).json({ error: "Error retrieving dessert" });
+    }
+    res.status(200).json(data);
+  });
+});
+
+app.get("/order", function (req, res) {
   const sql = "SELECT * FROM `ORDER`";
   connection.query(sql, (err, data) => {
     if (err) {
@@ -49,7 +60,7 @@ app.get("/api/order", function (req, res) {
   });
 });
 
-app.get("/api/table", function (req, res) {
+app.get("/table", function (req, res) {
   const sql = "SELECT * FROM `table`";
   connection.query(sql, (err, data) => {
     if (err) {
@@ -60,7 +71,7 @@ app.get("/api/table", function (req, res) {
   });
 });
 
-app.get("/api/payment", function (req, res) {
+app.get("/payment", function (req, res) {
   const sql = "SELECT * FROM `payment`";
   connection.query(sql, (err, data) => {
     if (err) {
@@ -72,11 +83,11 @@ app.get("/api/payment", function (req, res) {
 });
 
 //---POST----
-app.post("/api/drink", function (req, res) {
-  const { name, price, url_img } = req.body;
-  const sql = "INSERT INTO drink (name, price, url_img) VALUES ( ?, ?, ?)";
+app.post("/drink", function (req, res) {
+  const { name, price, img_url } = req.body;
+  const sql = "INSERT INTO drink (name, price, img_url) VALUES ( ?, ?, ?)";
 
-  connection.query(sql, [name, price, url_img], (err, data) => {
+  connection.query(sql, [name, price, img_url], (err, data) => {
     if (err) {
       console.error("Error executing the SQL query:", err);
       return res.status(500).json({ error: "Error inserting Drink" });
@@ -85,7 +96,7 @@ app.post("/api/drink", function (req, res) {
   });
 });
 
-app.post("/api/payment", function (req, res) {
+app.post("/payment", function (req, res) {
   const { order_id, table_id, date, total } = req.body;
   const sql =
     "INSERT INTO payment (order_id, table_id, date, total) VALUES (?, ?, ?, ?)";
@@ -99,7 +110,7 @@ app.post("/api/payment", function (req, res) {
   });
 });
 
-app.post("/api/food", function (req, res) {
+app.post("/food", function (req, res) {
   const { name, price, img_url } = req.body;
   const sql = "INSERT INTO food (name, price, img_url) VALUES (?, ?, ?)";
   connection.query(sql, [name, price, img_url], (err, data) => {
@@ -111,20 +122,25 @@ app.post("/api/food", function (req, res) {
   });
 });
 
-app.post("/api/order", function (req, res) {
-  const { table_id, food_id, total } = req.body;
-  const sql = "INSERT INTO `order` (table_id, food_id, total) VALUES (?, ?, ?)";
+app.post("/order", function (req, res) {
+  const { table_id, food_id, amount, total, drink_id, dessert_id } = req.body;
+  const sql =
+    "INSERT INTO `order` (table_id, food_id,amount, total,drink_id,dessert_id) VALUES (?, ?, ?,?,?,?)";
 
-  connection.query(sql, [table_id, food_id, total], (err, data) => {
-    if (err) {
-      console.error("Error executing the SQL query:", err);
-      return res.status(500).json({ error: "Error inserting orders" });
+  connection.query(
+    sql,
+    [table_id, food_id, amount, total, drink_id, dessert_id],
+    (err, data) => {
+      if (err) {
+        console.error("Error executing the SQL query:", err);
+        return res.status(500).json({ error: "Error inserting orders" });
+      }
+      res.status(201).json({ message: "Orders inserted successfully" });
     }
-    res.status(201).json({ message: "Orders inserted successfully" });
-  });
+  );
 });
 
-app.post("/api/tables", function (req, res) {
+app.post("/tables", function (req, res) {
   const name = req.body.name;
   const sql = "INSERT INTO `table` (name) VALUES (?)";
 
@@ -137,8 +153,21 @@ app.post("/api/tables", function (req, res) {
   });
 });
 
+app.post("/dessert", function (req, res) {
+  const { name, price, img_url } = req.body;
+  const sql = "INSERT INTO `dessert` (name, price, img_url) VALUES (?, ?, ?)";
+
+  connection.query(sql, [name, price, img_url], (err, data) => {
+    if (err) {
+      console.error("Error executing the SQL query:", err);
+      return res.status(500).json({ error: "Error inserting Dessert" });
+    }
+    res.status(201).json({ message: "Dessert inserted successfully" });
+  });
+});
+
 //---DELETE----
-app.delete("/api/drink/:id", function (req, res) {
+app.delete("/drink/:id", function (req, res) {
   const drinkId = req.params.id;
   const sql = "DELETE FROM drink WHERE id = ?";
 
@@ -151,7 +180,7 @@ app.delete("/api/drink/:id", function (req, res) {
   });
 });
 
-app.delete("/api/food/:id", function (req, res) {
+app.delete("/food/:id", function (req, res) {
   const foodId = req.params.id;
   const sql = "DELETE FROM food WHERE id = ?";
 
@@ -164,7 +193,7 @@ app.delete("/api/food/:id", function (req, res) {
   });
 });
 
-app.delete("/api/order/:id", function (req, res) {
+app.delete("/order/:id", function (req, res) {
   const orderId = req.params.id;
   const sql = "DELETE FROM `order` WHERE id = ?";
 
@@ -177,7 +206,7 @@ app.delete("/api/order/:id", function (req, res) {
   });
 });
 
-app.delete("/api/table/:id", function (req, res) {
+app.delete("/table/:id", function (req, res) {
   const tableId = req.params.id;
   const sql = "DELETE FROM `table` WHERE id = ?";
 
@@ -190,7 +219,7 @@ app.delete("/api/table/:id", function (req, res) {
   });
 });
 
-app.delete("/api/payment/:id", function (req, res) {
+app.delete("/payment/:id", function (req, res) {
   const paymentId = req.params.id;
   const sql = "DELETE FROM payment WHERE id = ?";
 
@@ -203,13 +232,41 @@ app.delete("/api/payment/:id", function (req, res) {
   });
 });
 
-//---UPDATE----
-app.put("/api/drink/:id", function (req, res) {
-  const drinkId = req.params.id;
-  const { name, price, url_img } = req.body;
-  const sql = "UPDATE drink SET name = ?, price = ?, url_img = ? WHERE id = ?";
+app.delete("/dessert/:id", function (req, res) {
+  const dessertId = req.params.id;
+  const sql = "DELETE FROM dessert WHERE id = ?";
 
-  connection.query(sql, [name, price, url_img, drinkId], (err, data) => {
+  connection.query(sql, [dessertId], (err, data) => {
+    if (err) {
+      console.error("Error executing the SQL query:", err);
+      return res.status(500).json({ error: "Error deleting Dessert" });
+    }
+    res.status(200).json({ message: "Dessert deleted successfully" });
+  });
+});
+
+//---UPDATE----
+app.put("/dessert/:id", function (req, res) {
+  const dessertId = req.params.id;
+  const { name, price, img_url } = req.body;
+  const sql =
+    "UPDATE dessert SET name = ?, price = ?, img_url = ? WHERE id = ?";
+
+  connection.query(sql, [name, price, img_url, dessertId], (err, data) => {
+    if (err) {
+      console.error("Error executing the SQL query:", err);
+      return res.status(500).json({ error: "Error updating Dessert" });
+    }
+    res.status(200).json({ message: "Dessert updated successfully" });
+  });
+});
+
+app.put("/drink/:id", function (req, res) {
+  const drinkId = req.params.id;
+  const { name, price, img_url } = req.body;
+  const sql = "UPDATE drink SET name = ?, price = ?, img_url = ? WHERE id = ?";
+
+  connection.query(sql, [name, price, img_url, drinkId], (err, data) => {
     if (err) {
       console.error("Error executing the SQL query:", err);
       return res.status(500).json({ error: "Error updating Drink" });
@@ -218,7 +275,7 @@ app.put("/api/drink/:id", function (req, res) {
   });
 });
 
-app.put("/api/food/:id", function (req, res) {
+app.put("/food/:id", function (req, res) {
   const foodId = req.params.id;
   const { name, price, img_url } = req.body;
   const sql = "UPDATE food SET name = ?, price = ?, img_url = ? WHERE id = ?";
@@ -232,7 +289,7 @@ app.put("/api/food/:id", function (req, res) {
   });
 });
 
-app.put("/api/order/:id", function (req, res) {
+app.put("/order/:id", function (req, res) {
   const orderId = req.params.id;
   const { table_id, food_id, total } = req.body;
   const sql =
@@ -247,7 +304,7 @@ app.put("/api/order/:id", function (req, res) {
   });
 });
 
-app.put("/api/table/:id", function (req, res) {
+app.put("/table/:id", function (req, res) {
   const tableId = req.params.id;
   const { name } = req.body;
   const sql = "UPDATE `table` SET name = ? WHERE id = ?";
@@ -262,7 +319,7 @@ app.put("/api/table/:id", function (req, res) {
 });
 
 //---update----
-app.put("/api/payment/:id", function (req, res) {
+app.put("/payment/:id", function (req, res) {
   const paymentId = req.params.id;
   const { order_id, table_id, date, total } = req.body;
   const sql =
